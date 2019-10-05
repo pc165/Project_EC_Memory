@@ -18,8 +18,8 @@ rand PROTO C, value:SDWORD
    
 ;;Macros que guarden y recuperen de la pila els registres de proposit general de la arquitectura de 32 bits de Intel  
 Push_all macro
-	push eax
-   	push ebx
+   push eax
+      push ebx
     push ecx
     push edx
     push esi
@@ -28,12 +28,12 @@ endm
 
 
 Pop_all macro
-	pop edi
-   	pop esi
-   	pop edx
-   	pop ecx
-   	pop ebx
-   	pop eax
+   pop edi
+      pop esi
+      pop edx
+      pop ecx
+      pop ebx
+      pop eax
 endm
    
    
@@ -166,7 +166,7 @@ getch endp
 ; colScreen=colScreenIni+(col*4)
 ; Per a posicionar el cursor cridar a la subrutina gotoxy.
 ;
-; Variables utilitzades:	
+; Variables utilitzades:   
 ; row       : fila per a accedir a la matriu gameCards/tauler
 ; col       : columna per a accedir a la matriu gameCards/tauler
 ; rowScreen : fila on volem posicionar el cursor a la pantalla.
@@ -180,13 +180,23 @@ getch endp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 posCurScreenP1 proc
     push ebp
-	mov  ebp, esp
-
-
-
-	mov esp, ebp
-	pop ebp
-	ret
+   mov  ebp, esp
+   mov eax, [row] ;int row, 32 bits
+   sub eax, 1
+   ; rowScreen=rowScreenIni+(row*2)
+   shl eax, 1
+   add eax,[rowScreenIni]
+   mov [rowScreen], eax
+   mov al, [col] ;char col, 8 bits
+   sub al, 'A' ; 65 = A ascii
+   ; colScreen=colScreenIni+(col*4)
+   shl al, 2
+   add eax,[colScreenIni]
+   mov [colScreen], eax
+   call gotoxy   
+   mov esp, ebp
+   pop ebp
+   ret
 posCurScreenP1 endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -207,9 +217,36 @@ posCurScreenP1 endp
 getMoveP1 proc
    push ebp
    mov  ebp, esp
-
-
-
+   call getch
+   mov al, [carac2]
+   ; carac2>=i && carac2 <=l || carac2 == s || carac2>=I && carac2 <=L || carac2 == S || carac2 == ' ' 
+   cmp al, 'i'
+   jl s_lower
+   cmp al, 'j'
+   jg s_lower
+   jmp final
+s_lower:
+   cmp al, 's'
+   jne upper
+   jmp final
+upper:
+   cmp al, 'I'
+   jl S_upper
+   cmp al, 'J'
+   jg S_upper
+   jmp final
+S_upper:
+   cmp al, 'S'
+   jne space
+   jmp final
+space:
+   cmp al, 32
+   jne error
+   jmp final
+error: ; que fer??
+   mov [carac2], '0'; si es error, retornar "\0"
+final:
+   mov [carac2], al
    mov esp, ebp
    pop ebp
    ret
@@ -251,9 +288,9 @@ moveCursorP1 endp
 ; Subrutina que implementa el moviment continuo. 
 ;
 ; Variables utilitzades:
-;		carac2   : variable on s�emmagatzema el car�cter llegit
-;		row      : fila per a accedir a la matriu gameCards
-;		col      : columna per a accedir a la matriu gameCards
+;      carac2   : variable on s�emmagatzema el car�cter llegit
+;      row      : fila per a accedir a la matriu gameCards
+;      col      : columna per a accedir a la matriu gameCards
 ; 
 ; Par�metres d'entrada : 
 ; Cap
@@ -262,14 +299,14 @@ moveCursorP1 endp
 ; Cap
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 movContinuoP1 proc
-	push ebp
-	mov  ebp, esp
+   push ebp
+   mov  ebp, esp
 
 
 
-	mov esp, ebp
-	pop ebp
-	ret
+   mov esp, ebp
+   pop ebp
+   ret
 movContinuoP1 endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -277,7 +314,7 @@ movContinuoP1 endp
 ; gameCards[row][col] en C, �s [gameCards+indexMat] en assemblador.
 ; on indexMat = row*8 + col (col convertir a n�mero).
 ;
-; Variables utilitzades:	
+; Variables utilitzades:   
 ; row       : fila per a accedir a la matriu gameCards
 ; col       : columna per a accedir a la matriu gameCards
 ; indexMat  : �ndex per a accedir a la matriu gameCards
@@ -289,14 +326,14 @@ movContinuoP1 endp
 ; Cap
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 calcIndexP1 proc
-	push ebp
-	mov  ebp, esp
-	
+   push ebp
+   mov  ebp, esp
+   
 
 
-	mov esp, ebp
-	pop ebp
-	ret
+   mov esp, ebp
+   pop ebp
+   ret
 calcIndexP1 endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -308,18 +345,18 @@ calcIndexP1 endp
 ; Canvis per a OpenContinuous:
 ; En cas de que la carta no estigui girada mostrar el valor
 ; En cas de que sigui la primera carta girada:
-;	- Guardar el valor i la posici� de la carta en el registres 
-;	  firstVal i firstPos
-;	- Actualitzar la matriu tauler y printar el valor per pantalla 
-;	  a la seva posici�
+;   - Guardar el valor i la posici� de la carta en el registres 
+;     firstVal i firstPos
+;   - Actualitzar la matriu tauler y printar el valor per pantalla 
+;     a la seva posici�
 ; En cas de que sigui la segona carta girada:
-;	- Comprovar si el valor es el mateix que la primera carta
-;		- Si el valor es el mateix actualitzar la matriu tauler, la 
-;		  variable totalPairs, i el valor de parelles restants 
-;		  mostrat per pantalla (updateScore)
-;		- Si el valor no es el mateix, esperar a que el usuari premi 
-;		  qualsevol tecla (getMoveP1), esborrar els valors de pantalla 
-;		  i la matriu tauler, i actualitzar els intents restants.
+;   - Comprovar si el valor es el mateix que la primera carta
+;      - Si el valor es el mateix actualitzar la matriu tauler, la 
+;        variable totalPairs, i el valor de parelles restants 
+;        mostrat per pantalla (updateScore)
+;      - Si el valor no es el mateix, esperar a que el usuari premi 
+;        qualsevol tecla (getMoveP1), esborrar els valors de pantalla 
+;        i la matriu tauler, i actualitzar els intents restants.
 ; Mostrarem el contingut de la carta criant a la subrutina printch. L'�ndex per
 ; a accedir a la matriu gameCards, el calcularem cridant a la subrutina calcIndexP1.
 ; No es pot obrir una casella que ja tenim oberta o marcada.
@@ -328,12 +365,12 @@ calcIndexP1 endp
 ; Cada vegada que fem una parella o fallem, actualitzar el total de parelles 
 ; i intents restants.
 ;
-; Variables utilitzades:	
+; Variables utilitzades:   
 ; row       : fila per a accedir a la matriu gameCards
 ; col       : columna per a accedir a la matriu gameCards
 ; indexMat  : �ndex per a accedir a la matriu gameCards
 ; gameCards : matriu 8x8 on tenim les posicions de les mines. 
-; carac	    : car�cter per a escriure a pantalla.
+; carac       : car�cter per a escriure a pantalla.
 ; tauler   : matriu en la que guardem els valors de les tirades 
 ; firstVal  : valor de la primera carta destapada
 ; firstPos  : posici� de la primera carta destapada
@@ -349,14 +386,14 @@ calcIndexP1 endp
 ; endGame
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 openP1 proc
-	push ebp
-	mov  ebp, esp
+   push ebp
+   mov  ebp, esp
 
 
 
-	mov esp, ebp
-	pop ebp
-	ret
+   mov esp, ebp
+   pop ebp
+   ret
 openP1 endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -382,14 +419,14 @@ openP1 endp
 ; Cap
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 openContinuousP1 proc
-	push ebp
-	mov  ebp, esp
+   push ebp
+   mov  ebp, esp
 
 
 
-	mov esp, ebp
-	pop ebp
-	ret
+   mov esp, ebp
+   pop ebp
+   ret
 openContinuousP1 endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -411,14 +448,14 @@ openContinuousP1 endp
 ; Cap
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 updateScore proc
-	push ebp
-	mov  ebp, esp
+   push ebp
+   mov  ebp, esp
 
 
 
-	mov esp, ebp
-	pop ebp
-	ret
+   mov esp, ebp
+   pop ebp
+   ret
 updateScore endp
 
 
@@ -434,7 +471,7 @@ updateScore endp
 ; Variables utilitzades: 
 ; row      : fila per a accedir a la matriu gameCards
 ; col      : columna per a accedir a la matriu gameCards
-; cards	   : llistat ordenat de cartes en joc
+; cards      : llistat ordenat de cartes en joc
 ; gameCards: matriu de cartes ordenades aleat�riament.
 ;
 ;
@@ -445,23 +482,23 @@ updateScore endp
 ; Cap
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 setupBoard proc
-	push ebp
-	mov  ebp, esp
+   push ebp
+   mov  ebp, esp
 
 
 
-	mov esp, ebp
-	pop ebp
-	ret
+   mov esp, ebp
+   pop ebp
+   ret
 setupBoard endp
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Subrutina que mostra nombres de 2 xifres per pantalla
 ;
-; rowscreen	: fila del cursor a la pantalla
-; colscreen	: columna del cursor a la pantalla
-; carac		: car�cter a visulatizar per la pantalla
+; rowscreen   : fila del cursor a la pantalla
+; colscreen   : columna del cursor a la pantalla
+; carac      : car�cter a visulatizar per la pantalla
 ;
 ; Par�metres d'entrada : 
 ; AL: nombre a mostrar
@@ -470,14 +507,14 @@ setupBoard endp
 ; Cap
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 showNumbers proc
-	push ebp
-	mov  ebp, esp
+   push ebp
+   mov  ebp, esp
 
 
 
-	mov esp, ebp
-	pop ebp
-	ret
+   mov esp, ebp
+   pop ebp
+   ret
 showNumbers endp
 
 ;****************************************************************************************
