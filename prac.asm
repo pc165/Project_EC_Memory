@@ -355,7 +355,6 @@ moveCursorP1 endp
 movContinuoP1 proc
    push ebp
    mov  ebp, esp
-
 bucle:
 	call getMoveP1
 	call moveCursorP1
@@ -363,6 +362,8 @@ bucle:
 	cmp [carac2],'S'
 	je fi
 	cmp [carac2],'s'
+	je fi
+	cmp [carac2], ' '
 	je fi
 	jmp bucle
 fi:
@@ -374,7 +375,7 @@ movContinuoP1 endp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Calcular l'�ndex per a accedir a les matrius en assemblador.
 ; gameCards[row][col] en C, �s [gameCards+indexMat] en assemblador.
-; on indexMat = row*8 + col (col convertir a n�mero).
+; on indexMat = row*4 + col (col convertir a n�mero).
 ;
 ; Variables utilitzades:   
 ; row       : fila per a accedir a la matriu gameCards
@@ -391,13 +392,14 @@ calcIndexP1 proc
    push ebp
    mov  ebp, esp
    mov eax, [row]
-	sal eax, 4
-	push eax ; push row * 8
+	dec eax
+	sal eax, 2
+	push eax ; push row * 4
 	xor eax, eax ; reset eax
 	mov al, [col] ;char col, 8 bits
    sub al, 'A' ; make decimal
-	add eax, [esp + 4] ; row * 8 + col
-	add esp, 4
+	add eax, [esp] ; row * 8 + col
+	add esp, 4 ;equal pop
 	mov [indexMat], eax 
    mov esp, ebp
    pop ebp
@@ -456,9 +458,14 @@ calcIndexP1 endp
 openP1 proc
    push ebp
    mov  ebp, esp
-
-
-
+	cmp [carac2], ' '
+	jne fi
+	call calcIndexP1
+	mov esi, [indexMat]
+	mov al, gameCards[esi]
+	mov [carac], al
+	call printch
+fi:
    mov esp, ebp
    pop ebp
    ret
