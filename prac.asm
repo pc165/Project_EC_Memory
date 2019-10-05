@@ -390,9 +390,15 @@ movContinuoP1 endp
 calcIndexP1 proc
    push ebp
    mov  ebp, esp
-   
-
-
+   mov eax, [row]
+	sal eax, 4
+	push eax ; push row * 8
+	xor eax, eax ; reset eax
+	mov al, [col] ;char col, 8 bits
+   sub al, 'A' ; make decimal
+	add eax, [esp + 4] ; row * 8 + col
+	add esp, 4
+	mov [indexMat], eax 
    mov esp, ebp
    pop ebp
    ret
