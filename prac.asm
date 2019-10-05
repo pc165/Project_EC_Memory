@@ -179,7 +179,7 @@ getch endp
 ; Cap
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 posCurScreenP1 proc
-    push ebp
+   push ebp
    mov  ebp, esp
    mov eax, [row] ;int row, 32 bits
    sub eax, 1
@@ -193,7 +193,7 @@ posCurScreenP1 proc
    shl al, 2
    add eax,[colScreenIni]
    mov [colScreen], eax
-   call gotoxy   
+   call gotoxy
    mov esp, ebp
    pop ebp
    ret
@@ -245,7 +245,8 @@ space:
    jne error
    jmp final
 error: ; que fer??
-   mov [carac2], '0'; si es error, retornar "\0"
+   mov [carac2], 's'; si es error, retornar 's'
+	
 final:
    mov [carac2], al
 
@@ -304,23 +305,23 @@ moveCursorP1 proc
 ;#region Body
 I:
 	mov eax,[row]
-	inc eax
-	cmp eax,4
-	jg break
+	dec eax
+	cmp eax,1
+	jl break
 	mov [row],eax
    jmp break
 J:
    mov al,[col]
 	dec al
 	cmp al,'A'
-	jg break
+	jl break
 	mov [col],al
    jmp break
 K:
 	mov eax,[row]
-	dec eax
-	cmp eax,1
-	jl break
+	inc eax
+	cmp eax,4
+	jg break
 	mov [row],eax
    jmp break
 L:
@@ -355,8 +356,16 @@ movContinuoP1 proc
    push ebp
    mov  ebp, esp
 
-
-
+bucle:
+	call getMoveP1
+	call moveCursorP1
+	call posCurScreenP1
+	cmp [carac2],'S'
+	je fi
+	cmp [carac2],'s'
+	je fi
+	jmp bucle
+fi:
    mov esp, ebp
    pop ebp
    ret
