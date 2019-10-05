@@ -220,6 +220,7 @@ getMoveP1 proc
    call getch
    mov al, [carac2]
    ; carac2>=i && carac2 <=l || carac2 == s || carac2>=I && carac2 <=L || carac2 == S || carac2 == ' ' 
+;lower:
    cmp al, 'i'
    jl s_lower
    cmp al, 'j'
@@ -247,6 +248,7 @@ error: ; que fer??
    mov [carac2], '0'; si es error, retornar "\0"
 final:
    mov [carac2], al
+
    mov esp, ebp
    pop ebp
    ret
@@ -276,9 +278,60 @@ getMoveP1 endp
 moveCursorP1 proc
    push ebp
    mov  ebp, esp 
+   mov al,[carac2]
+	
+;#region Switch
+   cmp al,'i'
+   je I
+   cmp al,'I'
+   je I
+   cmp al,'j'
+   je J
+   cmp al,'J'
+   je J
+   cmp al,'k'
+   je K
+   cmp al,'K'
+   je K
+   cmp al,'l'
+   je L
+   cmp al,'L'
+   je L
+   jmp break
+;#endregion
 
 
-
+;#region Body
+I:
+	mov eax,[row]
+	inc eax
+	cmp eax,4
+	jg break
+	mov [row],eax
+   jmp break
+J:
+   mov al,[col]
+	dec al
+	cmp al,'A'
+	jg break
+	mov [col],al
+   jmp break
+K:
+	mov eax,[row]
+	dec eax
+	cmp eax,1
+	jl break
+	mov [row],eax
+   jmp break
+L:
+   mov al,[col]
+	inc al
+	cmp al,'D'
+	jg break
+	mov [col],al
+   jmp break
+break:
+;#endregion
    mov esp, ebp
    pop ebp
    ret
