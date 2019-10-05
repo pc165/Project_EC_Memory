@@ -458,14 +458,57 @@ calcIndexP1 endp
 openP1 proc
    push ebp
    mov  ebp, esp
+start:
 	cmp [carac2], ' '
 	jne fi
 	call calcIndexP1
 	mov esi, [indexMat]
 	mov al, gameCards[esi]
-	mov [carac], al
+	cmp tauler[esi], al
+	jne notOpen
+	call movContinuoP1
+	jmp start
+notOpen:
+	mov [carac],al
+	cmp [firstVal], 0
+	je first
+	jmp second
+first:
+	mov tauler[esi], al
+	mov [firstVal], eax
+	mov al, [col]
+	mov [firstCol],al
+	mov eax, [row]
+	mov [firstRow], eax
+	call printch
+	call movContinuoP1
+	jmp start
+second:
+	mov tauler[esi], al
+	call printch
+	cmp [firstVal], eax
+	jne incorrect
+	;correct
+	dec [totalPairs]
+	jmp fi
+incorrect:
+	dec [totalTries]
+	call getMoveP1
+	call posCurScreenP1
+	mov [carac], ' '
+	call printch
+	mov tauler[esi], 0
+	mov eax, [firstRow]
+	mov [row], eax
+	mov al, [firstCol]
+	mov [col], al
+	call calcIndexP1
+	mov tauler[esi], 0
+	call posCurScreenP1
 	call printch
 fi:
+	call updateScore
+	mov [firstVal], 0
    mov esp, ebp
    pop ebp
    ret
