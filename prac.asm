@@ -415,7 +415,6 @@ calcIndexP1 proc
 	dec eax
 	sal eax, 2
 	push eax ; push row * 4
-	xor eax, eax ; reset eax
 	mov al, [col] ;char col, 8 bits
    sub al, 'A' ; make decimal
 	add eax, [esp] ; row * 8 + col
@@ -573,6 +572,7 @@ openP1 endp
 openContinuousP1 proc
    push ebp
    mov  ebp, esp
+	call setupBoard
 bucle:
 	call movContinuoP1
 	call openP1
@@ -729,19 +729,88 @@ updateScore endp
 ; Cap
 ;
 ; Par�metres de sortida: 
-; Cap
+; Cap 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 setupBoard proc
    push ebp
    mov  ebp, esp
+	sub esp, 12 ;allocate space for local variables
+	xor eax,eax
+;	inc eax
+	mov [ebp - 8], eax ; letter counter starts at 1
+	; ascii alphabet range [65, 90], we need 9
+	push 66
+	push 90 - 9
+	call randomMinMax
+	add esp, 8
+	dec eax
+	mov [ebp - 4], eax ; base letter
+	mov edx, eax
+	mov ecx, 4 * 4 
+bucle1:
+	mov gameCards[ecx - 1], 0
+	loop bucle1
 
-
-
+	mov ecx, 4 * 4 ; counter
+	mov [ebp - 12],ecx
+bucle2:
+	;random row
+	mov ecx, [ebp - 12]
+	cmp ecx, 0
+	je fi
+	push 0
+	push 3
+	call randomMinMax
+	; offset = index row * 4 + col
+	mov esi, eax ; row
+	sal esi, 2
+	call randomMinMax
+	add esp, 8
+	add esi, eax
+	cmp gameCards[esi], 0
+	je setCard
+	jmp bucle2
+setCard:
+	mov eax, [ebp - 8]
+	mov edx, [ebp - 4]
+	add edx, eax
+	mov gameCards[esi], dl
+	;decrease bucle2 counter
+	mov ecx, [ebp - 12]
+	dec ecx
+	mov [ebp - 12], ecx
+	cmp eax, 7 ; if letter count hits 7 (8 letters, 0 ... 7) reset
+	je resetCounter
+	inc eax
+	mov [ebp - 8], eax
+	jmp bucle2
+resetCounter:
+	xor eax, eax
+	mov [ebp - 8], eax
+	jmp bucle2
+fi:
    mov esp, ebp
    pop ebp
    ret
 setupBoard endp
 
+; arguments from stack, max ([ebp + 8]), min ([epb + 12]), return value in eax
+randomMinMax proc
+   push ebp
+   mov  ebp, esp
+	call rand
+	; min + (rand() % (max - min + 1))
+	mov ecx, [ebp + 8] ; max
+	sub ecx, [ebp + 12] ; min
+	inc ecx 
+	xor edx,edx
+	div ecx ; remainder in edx
+	add edx, [ebp + 12]
+	mov eax, edx
+   mov esp, ebp
+   pop ebp
+   ret
+randomMinMax endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Subrutina que mostra nombres de 2 xifres per pantalla
