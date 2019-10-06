@@ -14,6 +14,24 @@ printBoard_C PROTO C, value: DWORD
 initialPosition_C PROTO C
 rand PROTO C, value:SDWORD
 
+.data
+lost1 db "                    db       .d88b.  .d8888. d888888b ",13,10,
+"                    88      .8P  Y8. 88'  YP `~~88~~' ",13,10,
+"                    88      88    88 `8bo.      88    ",13,10,
+"                    88      88    88   `Y8b.    88    ",13,10,
+"                    88booo. `8b  d8' db   8D    88    ",13,10,
+"                    Y88888P  `Y88P'  `8888Y'    YP    ",'$'
+
+
+Win1 db "                    db   d8b   db d888888b d8b   db",13,10, 
+"                    88   I8I   88   `88'   888o  88",13,10, 
+"                    88   I8I   88    88    88V8o 88",13,10, 
+"                    Y8   I8I   88    88    88 V8o88",13,10, 
+"                    `8b d8'8b d8'   .88.   88  V888",13,10,
+"                     `8b8' `8d8'  Y888888P VP   V8P",'$' 
+
+
+
 .code   
    
 ;;Macros que guarden y recuperen de la pila els registres de proposit general de la arquitectura de 32 bits de Intel  
@@ -553,20 +571,87 @@ openP1 endp
 openContinuousP1 proc
    push ebp
    mov  ebp, esp
-	bucle:
+bucle:
 	call movContinuoP1
 	call openP1
+	cmp [totalTries], 0
+	jne noLost
+	call printWinLost
+	call getMoveP1
+	jmp fi
+noLost:
+	cmp [totalPairs], 0
+	jne noWin
+	call printWinLost
+	call getMoveP1
+	jmp fi
+noWin:
 	cmp [carac2],'S'
 	je fi
 	cmp [carac2],'s'
 	je fi
 	jmp bucle
-	 fi:
-
+fi:
    mov esp, ebp
    pop ebp
    ret
 openContinuousP1 endp
+
+
+printWinLost proc
+	push ebp
+   mov  ebp, esp
+	;set cursor position
+	mov eax, 0 ; col
+   push eax
+   mov eax, 19 ; row
+   push eax
+   call gotoxy_C
+	pop eax
+	pop eax
+   xor eax,eax
+	;print string
+	cmp [totalPairs], 0
+	je win
+	cmp [totalTries], 0
+	je lost
+	jmp fi
+win:
+	lea eax, win1
+	push eax
+	call printString
+	pop eax
+	jmp fi
+lost:
+	lea eax, lost1
+	push eax
+	call printString
+	pop eax
+fi:
+	mov esp, ebp
+   pop ebp
+   ret
+printWinLost endp
+; load string using the address of the string passed in the stack ([ebp + 8])
+printString proc
+	push ebp
+   mov  ebp, esp
+	mov esi, [ebp + 8]
+	mov edi, 0
+bucle:
+	mov  al, [esi + edi]
+	cmp al, '$'
+	je fi
+   push eax 
+   call printChar_C
+   pop eax
+	inc edi
+	jmp bucle
+fi:
+	mov esp, ebp
+   pop ebp
+   ret
+printString endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Subrutina que mostra el n�mero de parelles restants. Moure el 
@@ -594,19 +679,19 @@ updateScore proc
 	push eax
 	mov al, [col]
 	push eax
-	;print total pairs
+	;print total tries
 	mov [row], -1
 	mov [col], 5
 	call posCurScreenP1
-	mov eax, [totalPairs]
+	mov eax, [totalTries]
 	add eax, 48 ;convert to char
 	mov [carac], al
 	call printch
-	;print total tries
+	;print total pairs
 	mov [row], -1
 	mov [col], 2
 	call posCurScreenP1
-	mov eax, [totalTries]
+	mov eax, [totalPairs]
 	add eax, 48 ;convert to char
 	mov [carac], al
 	call printch
