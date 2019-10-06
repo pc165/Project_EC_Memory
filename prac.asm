@@ -589,9 +589,33 @@ openContinuousP1 endp
 updateScore proc
    push ebp
    mov  ebp, esp
-
-
-
+	;save last row,col
+	mov eax, [row]
+	push eax
+	mov al, [col]
+	push eax
+	;print total pairs
+	mov [row], -1
+	mov [col], 5
+	call posCurScreenP1
+	mov eax, [totalPairs]
+	add eax, 48 ;convert to char
+	mov [carac], al
+	call printch
+	;print total tries
+	mov [row], -1
+	mov [col], 2
+	call posCurScreenP1
+	mov eax, [totalTries]
+	add eax, 48 ;convert to char
+	mov [carac], al
+	call printch
+	;restore position
+	pop eax
+	mov [col],al
+	pop eax
+	mov [row],eax
+	call posCurScreenP1
    mov esp, ebp
    pop ebp
    ret
