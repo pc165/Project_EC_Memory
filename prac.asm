@@ -18,8 +18,8 @@ rand PROTO C, value:SDWORD
    
 ;;Macros que guarden y recuperen de la pila els registres de proposit general de la arquitectura de 32 bits de Intel  
 Push_all macro
-   push eax
-      push ebx
+    push eax
+    push ebx
     push ecx
     push edx
     push esi
