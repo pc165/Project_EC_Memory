@@ -15,7 +15,8 @@ initialPosition_C PROTO C
 rand PROTO C, value:SDWORD
 
 .data
-lost1 db "                    db       .d88b.  .d8888. d888888b ",13,10,
+lost1 db \
+"                    db       .d88b.  .d8888. d888888b ",13,10,
 "                    88      .8P  Y8. 88'  YP `~~88~~' ",13,10,
 "                    88      88    88 `8bo.      88    ",13,10,
 "                    88      88    88   `Y8b.    88    ",13,10,
@@ -23,7 +24,8 @@ lost1 db "                    db       .d88b.  .d8888. d888888b ",13,10,
 "                    Y88888P  `Y88P'  `8888Y'    YP    ",'$'
 
 
-Win1 db "                    db   d8b   db d888888b d8b   db",13,10, 
+Win1 db \
+"                    db   d8b   db d888888b d8b   db",13,10, 
 "                    88   I8I   88   `88'   888o  88",13,10, 
 "                    88   I8I   88    88    88V8o 88",13,10, 
 "                    Y8   I8I   88    88    88 V8o88",13,10, 
