@@ -494,18 +494,32 @@ second:
 incorrect:
 	dec [totalTries]
 	call getMoveP1
-	call posCurScreenP1
+	;save cursor position
+	mov eax, [row]
+	push eax
+	mov al, [col]
+	push eax
+	; hide second card
 	mov [carac], ' '
+	call posCurScreenP1
 	call printch
-	mov tauler[esi], 0
+	mov tauler[esi], 32
+	;hide first card
 	mov eax, [firstRow]
 	mov [row], eax
 	mov al, [firstCol]
 	mov [col], al
 	call calcIndexP1
-	mov tauler[esi], 0
+	mov esi, [indexMat]
+	mov tauler[esi], 32
 	call posCurScreenP1
 	call printch
+	; mov cursor to the last position
+	pop eax
+	mov [col], al
+	pop eax
+	mov [row], eax
+	call posCurScreenP1
 fi:
 	call updateScore
 	mov [firstVal], 0
@@ -539,8 +553,15 @@ openP1 endp
 openContinuousP1 proc
    push ebp
    mov  ebp, esp
-
-
+	bucle:
+	call movContinuoP1
+	call openP1
+	cmp [carac2],'S'
+	je fi
+	cmp [carac2],'s'
+	je fi
+	jmp bucle
+	 fi:
 
    mov esp, ebp
    pop ebp
