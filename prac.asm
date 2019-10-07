@@ -739,8 +739,8 @@ setupBoard proc
 ;	inc eax
 	mov [ebp - 8], eax ; letter counter starts at 1
 	; ascii alphabet range [65, 90], we need 9
-	push 65
-	push 90 - 8
+	push 66
+	push 90 - 9
 	call randomMinMax
 	add esp, 8
 	dec eax
